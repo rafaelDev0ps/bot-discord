@@ -42,7 +42,9 @@ discordClient.on('message', message => {
   if (arrayMensagem[0] === 'meme') {
 
     clientCSE.search(mensagem, options).then(images => { 
-      message.channel.send(images[0].thumbnail)
+      message.channel.send({
+        files: [images[0].url]
+      });
       
     }).catch(error => {
       console.log(error);
@@ -56,7 +58,7 @@ discordClient.on('message', message => {
     let queryString = queryArray.join(' ');
 
     getSpotifyTrack(queryString).then((response) => {
-      console.log(response.data);
+
       message.channel.send(response.data.tracks.items[0].album.artists[0].external_urls.spotify);
       
     }).catch((err) => {
