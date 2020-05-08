@@ -1,10 +1,11 @@
+const axios = require("axios");
 const discord = require("discord.js");
-// const axios = require('axios')
 const imageSearch = require('image-search-google');
- 
+
 
 const keyAPI = process.env.KEY_API;
 const context = process.env.CONTEXT_KEY;
+const spotifyAccessToken = process.env.SPOTIFY_ACCESS_TOKEN;
 
 const clientCSE = new imageSearch(context, keyAPI);
 const options = {
@@ -17,6 +18,17 @@ const discordClient = new discord.Client();
 discordClient.once('ready', () => {
 	console.log('Ready!');
 });
+
+
+async function getSpotifyTrack(trackName) {
+  try {
+    return await axios.get(`https://api.spotify.com/v1/search`,
+      {params: {q: trackName ,type: 'track'},
+      headers: {"Authorization": `Bearer ${spotifyAccessToken}`}})
+  } catch (err) {
+    console.log(err);
+  }
+}
 
 discordClient.on('message', message => {
 
@@ -34,6 +46,21 @@ discordClient.on('message', message => {
       
     }).catch(error => {
       console.log(error);
+    });
+  }
+
+
+  if (arrayMensagem[0] === 'spotify' && arrayMensagem[1] === 'find') {
+
+    let queryArray = arrayMensagem.splice(2, arrayMensagem.length - 1);
+    let queryString = queryArray.join(' ');
+
+    getSpotifyTrack(queryString).then((response) => {
+      console.log(response.data);
+      message.channel.send(response.data.tracks.items[0].album.artists[0].external_urls.spotify);
+      
+    }).catch((err) => {
+      console.log(err);
     });
   }
     
