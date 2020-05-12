@@ -1,6 +1,7 @@
 const axios = require("axios");
 const discord = require("discord.js");
 const imageSearch = require('image-search-google');
+const spotify = require('./tools/spotify');
 
 
 const keyAPI = process.env.KEY_API;
@@ -23,8 +24,21 @@ discordClient.once('ready', () => {
 async function getSpotifyTrack(trackName) {
   try {
     return await axios.get(`https://api.spotify.com/v1/search`,
-      {params: {q: trackName ,type: 'track'},
-      headers: {"Authorization": `Bearer ${spotifyAccessToken}`}})
+      {
+        params: {q: trackName, type: 'track'},
+        headers: {"Authorization": `Bearer ${spotifyAccessToken}`}
+      }
+    );
+  } catch (err) {
+    throw err;
+  }
+}
+
+async function getComputerDeviceId() {
+  try {
+    return await axios.get(`https://api.spotify.com/v1/me/player/devices`,
+      {headers: {"Authorization": `Bearer ${spotifyAccessToken}`}}
+    );
   } catch (err) {
     console.log(err);
   }
@@ -42,6 +56,7 @@ discordClient.on('message', message => {
   if (arrayMensagem[0] === 'meme') {
 
     clientCSE.search(mensagem, options).then(images => { 
+      
       message.channel.send({
         files: [images[0].url]
       });
@@ -64,6 +79,19 @@ discordClient.on('message', message => {
     }).catch((err) => {
       console.log(err);
     });
+  }
+
+  if (arrayMensagem[0] === 'spotify' && arrayMensagem[1] === 'queue') {
+    getComputerDeviceId().then((res) => {
+      const deviceId = res.data.devices[0].id;
+      let trackId = arrayMensagem[2];
+
+      spotify.setTrackOnQueueBy(trackId, deviceId);
+
+    }).catch((err) => {
+      console.log(err);
+    });
+    message.channel.send("aloha");
   }
     
 });
